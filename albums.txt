@@ -1,46 +1,77 @@
 4
-Neil Diamond
-Greatest Hits
+ado
+The Greatest Adobum
 EP
-2
-3
-Crackling Rose
-sounds/01-Cracklin-rose.wav
-3
-Soolaimon
-sounds/06-Soolaimon.wav
 4
-Sweet Caroline
-sounds/20-Sweet_Caroline.wav
+album/ado/cover.png
+4
+Aishite Cover
+album/ado/Aishite Aishite Aishite.mp3
+3
+Episode X
+album/ado/Episode X.mp3
+4
+FREEDOM
+album/ado/FREEDOM.mp3
 2
-Platters
-Greatest Hits
+unravel
+album/ado/unravel.mp3
+2
+Kenshi Yonezu
+Greatest Hits of Kenshi Yonezu
 EP
 1
-2
-Twilight Time
-sounds/01-Twilight_Time.wav
+album/kenshi yonezu/yenshi_konezu.png
+5
+Idiocy
+album/kenshi yonezu/Idiocy.mp3
 4
-The Great Pretender
-sounds/10-The_Great_Pretender.wav
+Telepsychola Theatric
+album/kenshi yonezu/Telepsychola Theatric.mp3
 3
-Don McClean
-American Pie
+Vertigo Phone
+album/kenshi yonezu/Vertigo Phone.mp3
+3
+Ward Room 305
+album/kenshi yonezu/Ward Room 305.mp3
+3
+Yuenshigai
+album/kenshi yonezu/Yuenshigai.mp3
+3
+MILI
+Songs of MILI
 Single
 2
-0
-Carly Simon
-No Secrets
+album/mili/mili.png
+4
+TIAN TIAN
+album/mili/TIAN TIAN.mp3
+3
+To Your Oblivion
+album/mili/To Your Oblivion.mp3
+3
+Until Our Sky Is Blue
+album/mili/Until Our Sky Is Blue.mp3
+3
+What the Ripple Sees
+album/mili/What the Ripple Sees.mp3
+3
+Moeshop
+Fan favourites
 EP
 2
-3
-The Carter Family
-sounds/02-The_Carter_Family.wav
+album/moe shop/moe_shop.png
+4
+GHOST FOOD (feat. TORIENA)
+album/moe shop/GHOST FOOD (feat. TORIENA).mp3
 1
-Your So Vain
-sounds/03-Youre_So_Vain.wav
+Identity (w⧸ SEIJ)
+album/moe shop/Identity (w⧸ SEIJ).mp3
 3
-Embrace me You Child
-sounds/06-Embrace_Me_You_Child.wav
+Love Taste (w⧸ Jamie Paige & Shiki)
+album/moe shop/Love Taste (w⧸ Jamie Paige & Shiki).mp3
+4
+TIMEOUT feat. orono
+album/moe shop/TIMEOUT feat. orono.mp3
 4
 

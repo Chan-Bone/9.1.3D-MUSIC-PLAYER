@@ -1,4 +1,4 @@
-require './input_functions'
+require './scripts/input_functions'
 require './music_player'
 #require './music_player_with_menu'
 # you could use the input functions instead of puts and gets
