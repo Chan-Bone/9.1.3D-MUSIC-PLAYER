@@ -1,26 +1,68 @@
 require 'rubygems'
 require 'gosu'
-require 'scripts/music_player'
+require './scripts/music_player.rb'
 
 TOP_COLOR = Gosu::Color.new(0xFF1EB1FA)
 BOTTOM_COLOR = Gosu::Color.new(0xFF1D4DB5)
 
-class ArtWork
-	attr_accessor :bmp
+class MenuMode
+	BROWSE_ALBUMS = 0
+	BROWSE_TRACKS = 1
+end
 
-	def initialize (file)
+class ArtWork
+	attr_accessor :bmp, :x, :y, :width
+
+	def initialize (file, x, y, width)
 		@bmp = Gosu::Image.new(file)
+		@x, @y = x, y
+		@width = width
+	end
+
+	def draw(player)
+		draw_image_consistent(@x, @y, @width)
+	end
+
+	def draw_image_consistent(x, y, target_width)
+	    # Calculate a uniform scale based on the target width
+	    scale_factor = target_width.to_f / @bmp.width
+		puts(scale_factor)
+	    new_height = @bmp.height * scale_factor
+
+	    @bmp.draw(x, y, 1, scale_factor, scale_factor)
 	end
 end
 
 # Put your record definitions here
 
 class MusicPlayerMain < Gosu::Window
+	
 
 	def initialize
 	    super 600, 800
 	    self.caption = "Music Player"
+		lib_path = "albums.txt"
+		
+		library_file = File.new(lib_path, "r")
+		@music_library = read_library(library_file)
+		library_file.close()
 
+		@track_font = Gosu::Font.new(20)
+
+		@button_sets = []
+		@button_sets << SongButton.new(50, "MEGALOVANIA" ,"some/path")
+
+		#Position = Top left of image
+		@album_arts = []
+		@album_arts << ArtWork.new("album/moe shop/moe_shop.png", 0, 100, 200)
+		
+		
+
+		@menu_mode = MenuMode::BROWSE_ALBUMS
+		
+		@background_color = Gosu::Color.new(255, 20, 20, 20) 
+		
+		print_library(@music_library)
 		# Reads in an array of albums from a file and then prints all the albums in the
 		# array to the terminal
 	end
@@ -33,18 +75,17 @@ class MusicPlayerMain < Gosu::Window
     # complete this code
   end
 
-  # Detects if a 'mouse sensitive' area has been clicked on
-  # i.e either an album or a track. returns true or false
-
-  def area_clicked(leftX, topY, rightX, bottomY)
-     # complete this code
+  
+  def is_within(leftX, topY, rightX, bottomY)
+	within = false
+	if (mouse_x >= leftX) && (mouse_x <= rightX) && (mouse_y >= topY) && (mouse_y <= bottomY)
+		within = true
+	end
+	return within
   end
 
-
-  # Takes a String title and an Integer ypos
-  # You may want to use the following:
-  def display_track(title, ypos)
-  	@track_font.draw(title, TrackLeftX, ypos, ZOrder::PLAYER, 1.0, 1.0, Gosu::Color::BLACK)
+  def display_text(title, xpos, ypos)
+  	@track_font.draw_text(title, xpos, ypos, 2, 1.0, 1.0, Gosu::Color::BLACK)
   end
 
 
@@ -68,13 +109,38 @@ class MusicPlayerMain < Gosu::Window
 # Not used? Everything depends on mouse actions.
 
 	def update
+		@button_sets.each do |button|
+			button.is_being_hovered(self)
+		end
 	end
 
  # Draws the album images and the track list for the selected album
 
 	def draw
-		# Complete the missing code
-		draw_background
+
+		# Draw background
+		Gosu::draw_quad(
+			0, 0, 
+			@background_color, 
+			
+			600, 0, 
+			@background_color, 
+			
+			600, 800, 
+			@background_color, 
+			
+			0, 800, 
+			@background_color, 
+		1)
+
+		@button_sets.each do |button|
+			button.draw(self)
+		end
+
+		@album_arts.each do |art|   
+			art.draw(self)
+		end
+		#draw_background
 	end
 
  	def needs_cursor?; true; end
@@ -86,10 +152,136 @@ class MusicPlayerMain < Gosu::Window
 
 	def button_down(id)
 		case id
-	    when Gosu::MsLeft
-	    	# What should happen here?
-	    end
+		when Gosu::MsLeft
+			@button_sets.each do |button|
+				if button.is_being_hovered(self) == true then
+					button.on_clicked(self)
+				end
+			end
+		when Gosu::KB_ESCAPE
+			close #Shut the player
+		end
 	end
+
+end
+
+class Button 
+	attr_accessor :leftX, :topY, :rightX, :bottomY, :is_hovered, :is_clicked
+	def initialize(leftX, topY, rightX, bottomY)
+
+		@leftX, @topY, @rightX, @bottomY = leftX, topY, rightX, bottomY
+		
+		@neutral_color = Gosu::Color.new(255, 100, 100, 100) 
+		@hover_color   = Gosu::Color.new(255, 165, 165, 165) 
+		@pressed_color = Gosu::Color.new(255, 230, 230, 230) 
+
+		@is_clicked, @is_hovered = false, false
+		@clicked_duration = 100
+
+		@click_start_time = Gosu.milliseconds - @clicked_duration
+	end
+
+	def is_being_hovered(player)
+		hover = player.is_within(@leftX, @topY, @rightX, @bottomY)
+		@is_hovered = hover
+		return hover
+  	end
+
+	def on_clicked(player)
+		@click_start_time = Gosu.milliseconds
+		puts("#{self} was clicked")
+	end
+
+	def was_clicked
+        elapsed = (Gosu.milliseconds - @click_start_time)
+		am_i_still_click = false
+		
+		if elapsed <= @clicked_duration then
+			am_i_still_click = true
+		end
+        return am_i_still_click
+    end
+
+	def draw(player)
+		_color = @neutral_color
+		if @is_hovered then 
+			_color = @hover_color
+		end
+		if was_clicked then
+			_color = @pressed_color
+		end
+
+		Gosu::draw_quad(
+			leftX, topY, 
+			_color, 
+			
+			rightX, topY, 
+			_color, 
+			
+			rightX, bottomY, 
+			_color, 
+			
+			leftX, bottomY, 
+			_color, 
+		1)
+	end
+end
+
+
+class SongButton < Button
+	attr_accessor :title, :y, :location
+	
+	def initialize(topY, song_title ,song_location)
+
+		@title = song_title
+		@location = song_location
+
+		_side_padding = 10
+		_height = 30
+		@leftX, @topY, @rightX, @bottomY = _side_padding, topY, 600-_side_padding, topY+_height
+		
+		@neutral_color = Gosu::Color.new(255, 100, 100, 100) 
+		@hover_color   = Gosu::Color.new(255, 165, 165, 165) 
+		@pressed_color = Gosu::Color.new(255, 230, 230, 230) 
+
+		@is_clicked, @is_hovered = false, false
+		@clicked_duration = 100
+
+		@click_start_time = Gosu.milliseconds - @clicked_duration
+	end
+
+	def draw(game)
+
+		game.display_text(@title, 20, @topY+8)
+		_color = @neutral_color
+		if @is_hovered then 
+			_color = @hover_color
+		end
+		if was_clicked then
+			_color = @pressed_color
+		end
+
+		Gosu::draw_quad(
+			leftX, topY, 
+			_color, 
+			
+			rightX, topY, 
+			_color, 
+			
+			rightX, bottomY, 
+			_color, 
+			
+			leftX, bottomY, 
+			_color, 
+		1)
+	end
+
+	def on_clicked(player)
+		@click_start_time = Gosu.milliseconds
+		puts("Started playing #{@title}")
+	end
+
+	
 
 end
 
