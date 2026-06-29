@@ -26,7 +26,6 @@ class ArtWork
 	def draw_image_consistent(x, y, target_width)
 	    # Calculate a uniform scale based on the target width
 	    scale_factor = target_width.to_f / @bmp.width
-		puts(scale_factor)
 	    new_height = @bmp.height * scale_factor
 
 	    @bmp.draw(x, y, 1, scale_factor, scale_factor)
