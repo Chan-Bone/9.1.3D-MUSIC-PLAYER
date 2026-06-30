@@ -35,7 +35,7 @@ end
 # Put your record definitions here
 
 class MusicPlayerMain < Gosu::Window
-	
+	attr_accessor :album_show_limit 
 
 	def initialize
 	    super 600, 800
@@ -54,12 +54,17 @@ class MusicPlayerMain < Gosu::Window
 		library_file = File.new(lib_path, "r")
 		@music_library = read_library(library_file)
 		library_file.close()
-		display_albums()
 		
+		@album_show_limit = [0, 4]
+		display_albums()
+ 
+
 		@song = 0
 		@menu_mode = MenuMode::BROWSE_ALBUMS
 		
 		@background_color = Gosu::Color.new(255, 20, 20, 20) 
+
+		
 		
 		print_library(@music_library)
 		# Reads in an array of albums from a file and then prints all the albums in the
@@ -72,8 +77,9 @@ class MusicPlayerMain < Gosu::Window
 
   def display_albums()
 	@button_sets.clear
-	index = 0
-	total = @music_library.albums.length
+	index = @album_show_limit[0]
+	total = [@music_library.albums.length, @album_show_limit[1]].min
+	
 	while index < total
 		this_album = @music_library.albums[index]
 
@@ -82,7 +88,7 @@ class MusicPlayerMain < Gosu::Window
 		else
 			x_pos = 40
 		end
-		y_off = index
+		y_off = index -  @album_show_limit[0]
 		y_pos = 40
 		while y_off >= 2
 			y_pos += 270
@@ -100,6 +106,12 @@ class MusicPlayerMain < Gosu::Window
 		)
 
 
+		if @album_show_limit[1] < @music_library.albums.length 
+			@button_sets << Next.new(800-100)
+		end
+		if @album_show_limit[0] > 0
+			@button_sets << Previous.new(800-100)
+		end
 		index += 1
 	end
   end
@@ -107,7 +119,7 @@ class MusicPlayerMain < Gosu::Window
   def display_an_album(album_idx)
 	this_album = @music_library.albums[album_idx]
 	@button_sets.clear
-	print_album_deep(this_album)
+	#print_album_deep(this_album)
 	length = this_album.tracks.length
 	index = 0
 	topY = 20
@@ -435,10 +447,10 @@ class NowPlaying < Button
 		_height = 30
 		@leftX, @topY, @rightX, @bottomY = _side_padding, topY, 600-_side_padding, topY+_height
 
-		@is_clicked, @is_hovered = false, false
 		@clicked_duration = 100
-
 		@click_start_time = Gosu.milliseconds - @clicked_duration
+		@is_clicked, @is_hovered = false, false
+		
 		@neutral_color = Gosu::Color.new(255, 100, 100, 100) 
 	end
 	
@@ -470,6 +482,134 @@ class NowPlaying < Button
 
 end
 
+
+
+class Previous < Button
+	attr_accessor :title, :y
+	
+	def initialize(topY)
+		@topY = topY
+		@title = "<"
+
+		_side_padding = 10
+		_height = 30
+		# WIdth 600
+		@leftX, @topY, @rightX, @bottomY = _side_padding, topY, _side_padding+_height, topY+_height
+
+		@is_clicked, @is_hovered = false, false
+		@clicked_duration = 100
+
+		@click_start_time = Gosu.milliseconds - @clicked_duration
+		@neutral_color = Gosu::Color.new(255, 100, 100, 100) 
+		@hover_color   = Gosu::Color.new(255, 165, 165, 165) 
+		@pressed_color = Gosu::Color.new(255, 230, 230, 230) 
+
+		
+
+		@click_start_time = Gosu.milliseconds - @clicked_duration
+	end
+	
+
+	def on_clicked(player)
+		#[4, 8]
+		
+			player.album_show_limit[0] -= 4
+			player.album_show_limit[1] -= 4
+		
+		player.display_albums()
+	end
+
+	def draw(player)
+
+		player.display_text(@title, 20, @topY+8)
+
+		_color = @neutral_color
+		if @is_hovered then 
+			_color = @hover_color
+		end
+		if was_clicked then
+			_color = @pressed_color
+		end
+
+		Gosu::draw_quad(
+			leftX, topY, 
+			_color, 
+			
+			rightX, topY, 
+			_color, 
+			
+			rightX, bottomY, 
+			_color, 
+			
+			leftX, bottomY, 
+			_color, 
+		1)
+	end
+
+end
+
+class Next < Button
+	attr_accessor :title, :y
+	
+	def initialize(topY)
+		@topY = topY
+		@title = ">"
+
+		_side_padding = 10
+		_height = 30
+		# WIdth 600
+		@leftX, @topY, @rightX, @bottomY = 600- _height -_side_padding, topY, 600 -_side_padding, topY+_height
+
+		@clicked_duration = 100
+		@click_start_time = Gosu.milliseconds - @clicked_duration
+		@neutral_color = Gosu::Color.new(255, 100, 100, 100) 
+		@hover_color   = Gosu::Color.new(255, 165, 165, 165) 
+		@pressed_color = Gosu::Color.new(255, 230, 230, 230) 
+
+		@is_clicked, @is_hovered = false, false
+		
+
+		@click_start_time = Gosu.milliseconds - @clicked_duration
+	end
+	
+
+	def on_clicked(player)
+		#[4, 8]
+		
+			player.album_show_limit[0] += 4
+			player.album_show_limit[1] += 4
+		
+		player.display_albums()
+	end
+
+	def draw(player)
+
+		player.display_text(@title, 600-30, @topY+8)
+
+		_color = @neutral_color
+		if @is_hovered then 
+			_color = @hover_color
+		end
+		if was_clicked then
+			_color = @pressed_color
+		end
+
+		Gosu::draw_quad(
+			leftX, topY, 
+			_color, 
+			
+			rightX, topY, 
+			_color, 
+			
+			rightX, bottomY, 
+			_color, 
+			
+			leftX, bottomY, 
+			_color, 
+		1)
+	end
+
+end
 
 
 
