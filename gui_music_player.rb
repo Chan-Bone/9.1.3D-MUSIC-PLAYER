@@ -42,21 +42,21 @@ class MusicPlayerMain < Gosu::Window
 	    self.caption = "Music Player"
 		lib_path = "albums.txt"
 		
-		library_file = File.new(lib_path, "r")
-		@music_library = read_library(library_file)
-		library_file.close()
+		
 
 		@track_font = Gosu::Font.new(20)
 
 		@button_sets = []
-		@button_sets << SongButton.new(50, "MEGALOVANIA" ,"some/path")
-
 		#Position = Top left of image
 		@album_arts = []
-		@album_arts << ArtWork.new("album/moe shop/moe_shop.png", 0, 100, 200)
+		#@album_arts << ArtWork.new("album/moe shop/moe_shop.png", 0, 100, 200)
 		
+		library_file = File.new(lib_path, "r")
+		@music_library = read_library(library_file)
+		library_file.close()
+		display_albums(@music_library.albums)
 		
-
+		@song = 0
 		@menu_mode = MenuMode::BROWSE_ALBUMS
 		
 		@background_color = Gosu::Color.new(255, 20, 20, 20) 
@@ -70,8 +70,56 @@ class MusicPlayerMain < Gosu::Window
 
   # Draws the artwork on the screen for all the albums
 
-  def draw_albums albums
-    # complete this code
+  def display_albums(albums)
+    @button_sets.clear
+	index = 0
+	total = @music_library.albums.length
+	while index < total
+		this_album = @music_library.albums[index]
+
+		if (index % 2 ) == 0 #is even -> right
+			x_pos = 310
+		else
+			x_pos = 40
+		end
+		y_off = index
+		y_pos = 40
+		while y_off >= 2
+			y_pos += 270
+			y_off -= 2
+		end
+		#@button_sets << AlbumButton.new(40, 80, 250, "ado", "album/ado/cover.png")
+		#@button_sets << AlbumButton.new(310, 80, 250, "ado", "album/ado/cover.png")
+
+		@button_sets << AlbumButton.new(
+			x_pos, y_pos, 
+			250, #width
+			this_album.title, 
+			this_album.album_art,
+			index
+		)
+
+
+		index += 1
+	end
+  end
+
+  def display_an_album(album_idx)
+	this_album = @music_library.albums[album_idx]
+	@button_sets.clear
+	print_album_deep(this_album)
+	length = this_album.tracks.length
+	index = 0
+	topY = 20
+	while index < length
+		this_track = this_album.tracks[index]
+		@button_sets << SongButton.new(topY, this_track.name, this_track.location)
+		topY+= 40
+		index+=1
+	end
+
+	#SongButton.new(topY, song_title ,song_location)
+
   end
 
   
@@ -90,10 +138,10 @@ class MusicPlayerMain < Gosu::Window
 
   # Takes a track index and an Album and plays the Track from the Album
 
-  def playTrack(track, album)
+  def playTrack(track_path)
   	 # complete the missing code
-  			@song = Gosu::Song.new(album.tracks[track].location)
-  			@song.play(false)
+		@song = Gosu::Song.new(track_path)
+		@song.play(false)
     # Uncomment the following and indent correctly:
   	#	end
   	# end
@@ -102,7 +150,19 @@ class MusicPlayerMain < Gosu::Window
 # Draw a coloured background using TOP_COLOR and BOTTOM_COLOR
 
 	def draw_background
-
+		Gosu::draw_quad(
+			0, 0, 
+			@background_color, 
+			
+			600, 0, 
+			@background_color, 
+			
+			600, 800, 
+			@background_color, 
+			
+			0, 800, 
+			@background_color, 
+		1)
 	end
 
 # Not used? Everything depends on mouse actions.
@@ -118,19 +178,7 @@ class MusicPlayerMain < Gosu::Window
 	def draw
 
 		# Draw background
-		Gosu::draw_quad(
-			0, 0, 
-			@background_color, 
-			
-			600, 0, 
-			@background_color, 
-			
-			600, 800, 
-			@background_color, 
-			
-			0, 800, 
-			@background_color, 
-		1)
+		draw_background
 
 		@button_sets.each do |button|
 			button.draw(self)
@@ -226,6 +274,28 @@ class Button
 	end
 end
 
+class AlbumButton < Button
+	attr_accessor :title, :y, :album, :artwork, :index_id
+
+	def initialize(leftX, topY, width, album, artwork_path, index_id)
+		@leftX, @topY, @rightX, @bottomY = leftX, topY, leftX+width, topY+width
+		@album = album
+		# file, x, y, width
+		@artwork = ArtWork.new(artwork_path, leftX, topY, width)
+		@index_id = index_id
+	end
+
+	def on_clicked(player)
+		@click_start_time = Gosu.milliseconds
+		player.display_an_album(index_id)
+
+		puts("Selected album #{@album}")
+	end
+
+	def draw(player)
+		@artwork.draw(player)
+	end
+end
 
 class SongButton < Button
 	attr_accessor :title, :y, :location
@@ -233,7 +303,7 @@ class SongButton < Button
 	def initialize(topY, song_title ,song_location)
 
 		@title = song_title
-		@location = song_location
+		@location = song_location.to_s
 
 		_side_padding = 10
 		_height = 30
@@ -249,9 +319,9 @@ class SongButton < Button
 		@click_start_time = Gosu.milliseconds - @clicked_duration
 	end
 
-	def draw(game)
+	def draw(player)
 
-		game.display_text(@title, 20, @topY+8)
+		player.display_text(@title, 20, @topY+8)
 		_color = @neutral_color
 		if @is_hovered then 
 			_color = @hover_color
@@ -277,6 +347,8 @@ class SongButton < Button
 
 	def on_clicked(player)
 		@click_start_time = Gosu.milliseconds
+		
+		player.playTrack(@location)
 		puts("Started playing #{@title}")
 	end
 

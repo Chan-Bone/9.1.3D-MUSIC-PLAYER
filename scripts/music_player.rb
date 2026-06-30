@@ -234,5 +234,3 @@ def test()
 
 	print_library(music_library)
 end
-
-test
