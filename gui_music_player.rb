@@ -54,7 +54,7 @@ class MusicPlayerMain < Gosu::Window
 		library_file = File.new(lib_path, "r")
 		@music_library = read_library(library_file)
 		library_file.close()
-		display_albums(@music_library.albums)
+		display_albums()
 		
 		@song = 0
 		@menu_mode = MenuMode::BROWSE_ALBUMS
@@ -70,8 +70,8 @@ class MusicPlayerMain < Gosu::Window
 
   # Draws the artwork on the screen for all the albums
 
-  def display_albums(albums)
-    @button_sets.clear
+  def display_albums()
+	@button_sets.clear
 	index = 0
 	total = @music_library.albums.length
 	while index < total
@@ -118,6 +118,7 @@ class MusicPlayerMain < Gosu::Window
 		index+=1
 	end
 
+	@button_sets << GoBackAlbums.new(800-50)
 	#SongButton.new(topY, song_title ,song_location)
 
   end
@@ -138,15 +139,23 @@ class MusicPlayerMain < Gosu::Window
 
   # Takes a track index and an Album and plays the Track from the Album
 
-  def playTrack(track_path)
+  def playTrack(track_path, name)
   	 # complete the missing code
 		@song = Gosu::Song.new(track_path)
 		@song.play(false)
+
+		@button_sets.delete(@button_sets.find { |obj| obj.is_a?(NowPlaying) })
+		@button_sets << NowPlaying.new(800-100, name)
     # Uncomment the following and indent correctly:
   	#	end
   	# end
   end
 
+  def stop_music()
+	if @song != 0
+		@song.stop
+	end
+  end
 # Draw a coloured background using TOP_COLOR and BOTTOM_COLOR
 
 	def draw_background
@@ -348,13 +357,121 @@ class SongButton < Button
 	def on_clicked(player)
 		@click_start_time = Gosu.milliseconds
 		
-		player.playTrack(@location)
+		player.playTrack(@location, @title)
 		puts("Started playing #{@title}")
 	end
 
 	
 
 end
+
+class GoBackAlbums < Button
+	attr_accessor :title, :y
+	
+	def initialize(topY)
+		@topY = topY
+		@title = "Return to Albums"
+
+		_side_padding = 10
+		_height = 30
+		@leftX, @topY, @rightX, @bottomY = _side_padding, topY, 600-_side_padding, topY+_height
+		
+		@neutral_color = Gosu::Color.new(255, 100, 100, 100) 
+		@hover_color   = Gosu::Color.new(255, 165, 165, 165) 
+		@pressed_color = Gosu::Color.new(255, 230, 230, 230) 
+
+		@is_clicked, @is_hovered = false, false
+		@clicked_duration = 100
+
+		@click_start_time = Gosu.milliseconds - @clicked_duration
+	end
+	
+
+	def on_clicked(player)
+		@click_start_time = Gosu.milliseconds
+		
+		player.display_albums()
+		player.stop_music()
+		puts("Return to album")
+	end
+
+	def draw(player)
+
+		player.display_text(@title, 20, @topY+8)
+		_color = @neutral_color
+		if @is_hovered then 
+			_color = @hover_color
+		end
+		if was_clicked then
+			_color = @pressed_color
+		end
+
+		Gosu::draw_quad(
+			leftX, topY, 
+			_color, 
+			
+			rightX, topY, 
+			_color, 
+			
+			rightX, bottomY, 
+			_color, 
+			
+			leftX, bottomY, 
+			_color, 
+		1)
+	end
+
+end
+
+
+class NowPlaying < Button
+	attr_accessor :title, :y
+	
+	def initialize(topY, title)
+		@topY = topY
+		@title = "Now playing #{title}."
+
+		_side_padding = 10
+		_height = 30
+		@leftX, @topY, @rightX, @bottomY = _side_padding, topY, 600-_side_padding, topY+_height
+
+		@is_clicked, @is_hovered = false, false
+		@clicked_duration = 100
+
+		@click_start_time = Gosu.milliseconds - @clicked_duration
+		@neutral_color = Gosu::Color.new(255, 100, 100, 100) 
+	end
+	
+
+	def on_clicked(player)
+
+	end
+
+	def draw(player)
+
+		player.display_text(@title, 20, @topY+8)
+
+		_color = @neutral_color
+
+		Gosu::draw_quad(
+			leftX, topY, 
+			_color, 
+			
+			rightX, topY, 
+			_color, 
+			
+			rightX, bottomY, 
+			_color, 
+			
+			leftX, bottomY, 
+			_color, 
+		1)
+	end
+
+end
+
+
+
 
 # Show is a method that loops through update and draw
 
